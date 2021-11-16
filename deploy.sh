@@ -16,7 +16,7 @@ function deploy() {
   cd infrastructure || exit
   tfenv use "${_TF_VERSION}"
   terraform init
-  terraform apply -var=project_id=${_GCP_PROJECT_NAME} -var=image_gcr_path="${_image_gcr_path}" -var="${_APP_NAME}" -lock=false
+  terraform apply -var=project_id=${_GCP_PROJECT_NAME} -var=image_gcr_path="${_image_gcr_path}" -var=name="${_APP_NAME}" -lock=false
 }
 
 export PATH=/home/"${_USER}"/.tfenv/bin:$PATH
