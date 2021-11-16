@@ -8,7 +8,7 @@ _TF_VERSION=1.0.11
 _USER="vagrant"
 
 function prepare_image() {
-  docker build -t "${_image_gcr_path}" .
+  docker build --no-cache -t "${_image_gcr_path}" .
   docker push "${_image_gcr_path}"
 }
 
@@ -16,6 +16,7 @@ function deploy() {
   cd infrastructure || exit
   tfenv use "${_TF_VERSION}"
   terraform init
+  terraform destroy -var=project_id=${_GCP_PROJECT_NAME} -var=image_gcr_path="${_image_gcr_path}" -var=name="${_APP_NAME}" -lock=false
   terraform apply -var=project_id=${_GCP_PROJECT_NAME} -var=image_gcr_path="${_image_gcr_path}" -var=name="${_APP_NAME}" -lock=false
 }
 
