@@ -5,7 +5,7 @@ resource "google_project_service" "run_api" {
 }
 
 resource "google_cloud_run_service" "run_service" {
-  name = "golang-web-app"
+  name = var.name
   location = "europe-central2"
 
   template {

@@ -2,6 +2,7 @@
 
 _IMAGE_NAME="dev_webapp_image"
 _GCP_PROJECT_NAME="golang-web-app-331620"
+_APP_NAME="golang-test-app"
 _image_gcr_path=gcr.io/"${_GCP_PROJECT_NAME}"/"${_IMAGE_NAME}"
 _TF_VERSION=1.0.11
 _USER="vagrant"
@@ -15,7 +16,7 @@ function deploy() {
   cd infrastructure || exit
   tfenv use "${_TF_VERSION}"
   terraform init
-  terraform apply -var=project_id=${_GCP_PROJECT_NAME} -var=image_gcr_path="${_image_gcr_path}" -lock=false
+  terraform apply -var=project_id=${_GCP_PROJECT_NAME} -var=image_gcr_path="${_image_gcr_path}" -var="${_APP_NAME}" -lock=false
 }
 
 export PATH=/home/"${_USER}"/.tfenv/bin:$PATH
