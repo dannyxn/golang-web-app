@@ -1,15 +1,3 @@
-terraform {
-  required_version = ">= 0.14"
-
-  required_providers {
-    google = ">= 3.3"
-  }
-}
-
-provider "google" {
-  project = "golang-web-app-331620"
-}
-
 resource "google_project_service" "run_api" {
   service = "run.googleapis.com"
 
@@ -23,7 +11,7 @@ resource "google_cloud_run_service" "run_service" {
   template {
     spec {
       containers {
-        image = "gcr.io/google-samples/hello-app:1.0"
+        image = var.image_gcr_path
       }
     }
   }
