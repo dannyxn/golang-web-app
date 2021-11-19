@@ -4,6 +4,7 @@ import (
 	secretmanager "cloud.google.com/go/secretmanager/apiv1"
 	"context"
 	"errors"
+	"github.com/gorilla/mux"
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
 	secretmanagerpb "google.golang.org/genproto/googleapis/cloud/secretmanager/v1"
 	"log"
@@ -22,7 +23,11 @@ func main() {
 }
 
 func handleRequests() {
-	http.HandleFunc("/", index)
+	r := mux.NewRouter()
+	r.HandleFunc("/", index)
+	r.HandleFunc("/employee/{employee_id}", EmployeeHandler)
+	r.HandleFunc("/position/{position_id}", PositionHandler)
+
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
