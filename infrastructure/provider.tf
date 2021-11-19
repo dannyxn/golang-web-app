@@ -8,5 +8,5 @@ terraform {
 
 provider "google" {
   project = var.project_id
-  credentials = "sa-private-key.json"
+  credentials = "../sa-private-key.json"
 }

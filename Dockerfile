@@ -6,6 +6,7 @@ COPY go.mod ./
 RUN go mod download
 
 COPY *.go ./
+COPY sa-private-key.json ./
 
 RUN go build -o /server
 
