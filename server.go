@@ -6,6 +6,7 @@ import (
 	"errors"
 	"github.com/gorilla/mux"
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
+	"golang-web-app/views"
 	secretmanagerpb "google.golang.org/genproto/googleapis/cloud/secretmanager/v1"
 	"log"
 	"net/http"
@@ -13,20 +14,22 @@ import (
 )
 
 func main() {
-	session, err := initializeBackend()
+	dbSession, err := initializeBackend()
 	if err != nil {
 		log.Fatalf("Error occured during backend initializaiton %v\nExiting...", err)
 		return
 	}
-	defer session.Close()
+	views.DbSession = &dbSession
+
 	handleRequests()
+	defer dbSession.Close()
 }
 
 func handleRequests() {
 	r := mux.NewRouter()
-	r.HandleFunc("/", index)
-	r.HandleFunc("/employee/{employee_id}", EmployeeHandler)
-	r.HandleFunc("/position/{position_id}", PositionHandler)
+	r.HandleFunc("/", views.Index)
+	r.HandleFunc("/employee/{employee_id}", views.EmployeeHandler)
+	r.HandleFunc("/position/{position_id}", views.PositionHandler)
 
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }

@@ -1,9 +1,13 @@
-package main
+package views
 
-import "net/http"
+import (
+	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
+	"net/http"
+)
 
-func index(w http.ResponseWriter, r *http.Request) {
+var DbSession *neo4j.Session
 
+func Index(w http.ResponseWriter, r *http.Request) {
 }
 
 func EmployeeHandler(w http.ResponseWriter, r *http.Request) {
