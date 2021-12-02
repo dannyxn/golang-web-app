@@ -30,8 +30,9 @@ func handleRequests() {
 	r.HandleFunc("/", views.Index)
 	r.HandleFunc("/employee/{employee_id}", views.EmployeeHandler)
 	r.HandleFunc("/position/{position_id}", views.PositionHandler)
+	r.HandleFunc("/project/{project_id}", views.ProjectHandler)
 
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe(":8081", r))
 }
 
 func initializeBackend() (neo4j.Session, error) {
