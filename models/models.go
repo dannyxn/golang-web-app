@@ -16,3 +16,8 @@ type Project struct {
 	Id   int64  `json:"Id"`
 	Name string `json:"Name"`
 }
+
+type ModificationStatus struct {
+	Status string `json:"Status"`
+	Error  string `json:"Error"`
+}

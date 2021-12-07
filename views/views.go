@@ -199,6 +199,23 @@ func updateEmployee(w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteEmployee(w http.ResponseWriter, r *http.Request) {
+	session := (*DbDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	params := mux.Vars(r)
+	employeeId := params["employeeId"]
+	query := fmt.Sprintf("MATCH (employee:Employee) WHERE ID(employee)=%v DELETE employee", employeeId)
+	modificationStatus := models.ModificationStatus{}
+	_, err := session.Run(query, nil)
+	if err != nil {
+		fmt.Errorf("not found: %v", employeeId)
+		fmt.Errorf("message: %v", err)
+		modificationStatus.Status = "not deleted"
+		modificationStatus.Error = err.Error()
+	} else {
+		modificationStatus.Status = "ok"
+		modificationStatus.Error = ""
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(modificationStatus)
 }
 
 func createPosition(w http.ResponseWriter, r *http.Request) {
@@ -234,9 +251,28 @@ func updatePosition(w http.ResponseWriter, r *http.Request) {
 }
 
 func deletePosition(w http.ResponseWriter, r *http.Request) {
+	session := (*DbDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	params := mux.Vars(r)
+	positionId := params["positionId"]
+	query := fmt.Sprintf("MATCH (position:Position) WHERE ID(position)=%v DELETE position", positionId)
+	modificationStatus := models.ModificationStatus{}
+	result, _ := session.Run(query, nil)
+	_, err := result.Single()
+	if err != nil {
+		fmt.Errorf("not found: %v", positionId)
+		fmt.Errorf("message: %v", err)
+		modificationStatus.Status = "not deleted"
+		modificationStatus.Error = err.Error()
+	} else {
+		modificationStatus.Status = "ok"
+		modificationStatus.Error = ""
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(modificationStatus)
 }
 
 func createProject(w http.ResponseWriter, r *http.Request) {
+
 }
 
 func readProject(w http.ResponseWriter, r *http.Request) {
@@ -269,4 +305,21 @@ func updateProject(w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteProject(w http.ResponseWriter, r *http.Request) {
+	session := (*DbDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	params := mux.Vars(r)
+	projectId := params["projectId"]
+	query := fmt.Sprintf("MATCH (project:Project) WHERE ID(project)=%v DELETE project", projectId)
+	modificationStatus := models.ModificationStatus{}
+	_, err := session.Run(query, nil)
+	if err != nil {
+		fmt.Errorf("not found: %v", projectId)
+		fmt.Errorf("message: %v", err)
+		modificationStatus.Status = "not deleted"
+		modificationStatus.Error = err.Error()
+	} else {
+		modificationStatus.Status = "ok"
+		modificationStatus.Error = ""
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(modificationStatus)
 }
