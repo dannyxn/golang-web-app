@@ -126,15 +126,6 @@ func ListProjects(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, 200, projects)
 }
 
-func CreateEmployee(w http.ResponseWriter, r *http.Request) {
-	var employee models.Employee
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&employee); err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
-		return
-	}
-}
-
 func GetEmployee(w http.ResponseWriter, r *http.Request) {
 	session := (*DbDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	params := mux.Vars(r)
@@ -169,9 +160,6 @@ func GetEmployee(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, 200, employee)
 }
 
-func UpdateEmployee(w http.ResponseWriter, r *http.Request) {
-}
-
 func DeleteEmployee(w http.ResponseWriter, r *http.Request) {
 	session := (*DbDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	params := mux.Vars(r)
@@ -185,7 +173,61 @@ func DeleteEmployee(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func CreatePosition(w http.ResponseWriter, r *http.Request) {
+func UpdateEmployee(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	employeeId := params["employeeId"]
+	queryMatch := fmt.Sprintf("MATCH (employee:Employee) WHERE ID(employee)=%v", employeeId)
+	querySet := " SET"
+
+	var employee models.Employee
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&employee); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+	defer r.Body.Close()
+
+	if employee.Name != "" {
+		querySet += fmt.Sprintf(" employee.name = \"%v\"", employee.Name)
+	}
+
+	if employee.Surname != "" {
+		querySet += fmt.Sprintf(" employee.surname = \"%v\"", employee.Surname)
+	}
+
+	if employee.PhoneNumber != "" {
+		querySet += fmt.Sprintf(" employee.phoneNumber = \"%v\"", employee.PhoneNumber)
+	}
+	query := queryMatch + querySet + " RETURN employee"
+
+	session := (*DbDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+
+	_, err := session.Run(query, nil)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, err.Error())
+	} else {
+		respondWithJSON(w, http.StatusCreated, models.ModificationStatus{Status: "ok", Error: ""})
+	}
+}
+
+func CreateEmployee(w http.ResponseWriter, r *http.Request) {
+	var employee models.Employee
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&employee); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+	defer r.Body.Close()
+	session := (*DbDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	query := fmt.Sprintf("CREATE (employee:Employee {name: \"%v\", surname: \"%v\", phoneNumber: \"%v\"})",
+		employee.Name, employee.Surname, employee.PhoneNumber)
+
+	_, err := session.Run(query, nil)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, err.Error())
+	} else {
+		respondWithJSON(w, http.StatusCreated, models.ModificationStatus{Status: "ok", Error: ""})
+	}
 }
 
 func GetPosition(w http.ResponseWriter, r *http.Request) {
@@ -213,6 +255,33 @@ func GetPosition(w http.ResponseWriter, r *http.Request) {
 }
 
 func UpdatePosition(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	positionId := params["positionId"]
+	queryMatch := fmt.Sprintf("MATCH (position:Position) WHERE ID(position)=%v", positionId)
+	querySet := " SET"
+
+	var position models.Position
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&position); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+	defer r.Body.Close()
+
+	if position.Name != "" {
+		querySet += fmt.Sprintf(" position.name = \"%v\"", position.Name)
+	}
+
+	query := queryMatch + querySet + " RETURN position"
+
+	session := (*DbDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+
+	_, err := session.Run(query, nil)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, err.Error())
+	} else {
+		respondWithJSON(w, http.StatusCreated, models.ModificationStatus{Status: "ok", Error: ""})
+	}
 }
 
 func DeletePosition(w http.ResponseWriter, r *http.Request) {
@@ -231,8 +300,23 @@ func DeletePosition(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func CreateProject(w http.ResponseWriter, r *http.Request) {
+func CreatePosition(w http.ResponseWriter, r *http.Request) {
+	var position models.Position
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&position); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+	defer r.Body.Close()
+	session := (*DbDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	query := fmt.Sprintf("CREATE (position:Position {name: \"%v\"})", position.Name)
 
+	_, err := session.Run(query, nil)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, err.Error())
+	} else {
+		respondWithJSON(w, http.StatusCreated, models.ModificationStatus{Status: "ok", Error: ""})
+	}
 }
 
 func GetProject(w http.ResponseWriter, r *http.Request) {
@@ -260,9 +344,6 @@ func GetProject(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, 200, project)
 }
 
-func UpdateProject(w http.ResponseWriter, r *http.Request) {
-}
-
 func DeleteProject(w http.ResponseWriter, r *http.Request) {
 	session := (*DbDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	params := mux.Vars(r)
@@ -276,4 +357,54 @@ func DeleteProject(w http.ResponseWriter, r *http.Request) {
 	} else {
 		respondWithJSON(w, 200, models.ModificationStatus{Status: "ok", Error: ""})
 	}
+}
+
+func UpdateProject(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	projectId := params["projectId"]
+	queryMatch := fmt.Sprintf("MATCH (project:Project) WHERE ID(project)=%v", projectId)
+	querySet := " SET"
+
+	var project models.Project
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&project); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+	defer r.Body.Close()
+
+	if project.Name != "" {
+		querySet += fmt.Sprintf(" project.name = \"%v\"", project.Name)
+	}
+
+	query := queryMatch + querySet + " RETURN project"
+
+	session := (*DbDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+
+	_, err := session.Run(query, nil)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, err.Error())
+	} else {
+		respondWithJSON(w, http.StatusCreated, models.ModificationStatus{Status: "ok", Error: ""})
+	}
+}
+
+func CreateProject(w http.ResponseWriter, r *http.Request) {
+	var project models.Project
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&project); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+	defer r.Body.Close()
+	session := (*DbDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	query := fmt.Sprintf("CREATE (project:Project {name: \"%v\"})", project.Name)
+
+	_, err := session.Run(query, nil)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, err.Error())
+	} else {
+		respondWithJSON(w, http.StatusCreated, models.ModificationStatus{Status: "ok", Error: ""})
+	}
+
 }
