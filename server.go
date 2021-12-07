@@ -29,13 +29,13 @@ func handleRequests() {
 	r := mux.NewRouter()
 	r.HandleFunc("/", views.Index)
 	r.HandleFunc("/employee/list", views.ListEmployees)
-	r.HandleFunc("/employee/{employee_id}", views.EmployeeHandler)
+	r.HandleFunc("/employee/{employeeId}", views.EmployeeHandler)
 
 	r.HandleFunc("/position/list", views.ListPositions)
-	r.HandleFunc("/position/{position_id}", views.PositionHandler)
+	r.HandleFunc("/position/{positionId}", views.PositionHandler)
 
 	r.HandleFunc("/project/list", views.ListProjects)
-	r.HandleFunc("/project/{project_id}", views.ProjectHandler)
+	r.HandleFunc("/project/{projectId}", views.ProjectHandler)
 
 	log.Fatal(http.ListenAndServe(":8081", r))
 }

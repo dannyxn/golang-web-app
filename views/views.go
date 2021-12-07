@@ -3,6 +3,7 @@ package views
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gorilla/mux"
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j/dbtype"
 	"golang-web-app/models"
@@ -34,6 +35,7 @@ func ListEmployees(w http.ResponseWriter, r *http.Request) {
 				continue
 			}
 
+			newEmployee.Id = employeeRecord.(dbtype.Node).Id
 			props := employeeRecord.(dbtype.Node).Props
 			name, ok := props["name"]
 			if ok {
@@ -79,13 +81,14 @@ func ListPositions(w http.ResponseWriter, r *http.Request) {
 	for result.Next() {
 		newPosition := models.Position{}
 		record := result.Record()
-		employeeRecord, ok := record.Get("positions")
+		positionRecord, ok := record.Get("positions")
 
 		if !ok {
 			continue
 		}
 
-		props := employeeRecord.(dbtype.Node).Props
+		newPosition.Id = positionRecord.(dbtype.Node).Id
+		props := positionRecord.(dbtype.Node).Props
 		name, ok := props["name"]
 		if ok {
 			newPosition.Name = name.(string)
@@ -121,13 +124,14 @@ func ListProjects(w http.ResponseWriter, r *http.Request) {
 	for result.Next() {
 		newProject := models.Project{}
 		record := result.Record()
-		employeeRecord, ok := record.Get("projects")
+		projectRecord, ok := record.Get("projects")
 
 		if !ok {
 			continue
 		}
 
-		props := employeeRecord.(dbtype.Node).Props
+		newProject.Id = projectRecord.(dbtype.Node).Id
+		props := projectRecord.(dbtype.Node).Props
 		name, ok := props["name"]
 		if ok {
 			newProject.Name = name.(string)
@@ -155,14 +159,40 @@ func ProjectHandler(w http.ResponseWriter, r *http.Request) {
 
 func createEmployee(w http.ResponseWriter, r *http.Request) {
 	//"CREATE (n:Employee {name: \"John\", surname: \"Doe\", phoneNumber: \"123123123\" })"
-
 }
 
 func readEmployee(w http.ResponseWriter, r *http.Request) {
-	//params := mux.Vars(r)
-	//
-	//w.Header().Set("Content-Type", "application/json")
-	//json.NewEncoder(w).Encode(e)
+	session := (*DbDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	params := mux.Vars(r)
+	employeeId := params["employeeId"]
+	query := fmt.Sprintf("MATCH (employee:Employee) WHERE ID(employee)=%v RETURN employee", employeeId)
+	employee := models.Employee{}
+	employee.Id = -1
+
+	result, _ := session.Run(query, nil)
+	record, err := result.Single()
+	if err != nil {
+		fmt.Errorf("not found: %v", employeeId)
+		fmt.Errorf("message: %v", err)
+	} else {
+		employeeRecord, _ := record.Get("employee")
+		employee.Id = employeeRecord.(dbtype.Node).Id
+		props := employeeRecord.(dbtype.Node).Props
+		name, ok := props["name"]
+		if ok {
+			employee.Name = name.(string)
+		}
+		surname, ok := props["surname"]
+		if ok {
+			employee.Surname = surname.(string)
+		}
+		phoneNumber, ok := props["phoneNumber"]
+		if ok {
+			employee.PhoneNumber = phoneNumber.(string)
+		}
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(employee)
 }
 
 func updateEmployee(w http.ResponseWriter, r *http.Request) {
@@ -175,6 +205,29 @@ func createPosition(w http.ResponseWriter, r *http.Request) {
 }
 
 func readPosition(w http.ResponseWriter, r *http.Request) {
+	session := (*DbDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	params := mux.Vars(r)
+	positionId := params["positionId"]
+	query := fmt.Sprintf("MATCH (position:Position) WHERE ID(position)=%v RETURN position", positionId)
+	position := models.Position{}
+	position.Id = -1
+
+	result, _ := session.Run(query, nil)
+	record, err := result.Single()
+	if err != nil {
+		fmt.Errorf("not found: %v", positionId)
+		fmt.Errorf("message: %v", err)
+	} else {
+		positionRecord, _ := record.Get("position")
+		position.Id = positionRecord.(dbtype.Node).Id
+		props := positionRecord.(dbtype.Node).Props
+		name, ok := props["name"]
+		if ok {
+			position.Name = name.(string)
+		}
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(position)
 }
 
 func updatePosition(w http.ResponseWriter, r *http.Request) {
@@ -187,6 +240,29 @@ func createProject(w http.ResponseWriter, r *http.Request) {
 }
 
 func readProject(w http.ResponseWriter, r *http.Request) {
+	session := (*DbDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	params := mux.Vars(r)
+	projectId := params["projectId"]
+	query := fmt.Sprintf("MATCH (project:Project) WHERE ID(project)=%v RETURN project", projectId)
+	project := models.Project{}
+	project.Id = -1
+
+	result, _ := session.Run(query, nil)
+	record, err := result.Single()
+	if err != nil {
+		fmt.Errorf("not found: %v", projectId)
+		fmt.Errorf("message: %v", err)
+	} else {
+		positionRecord, _ := record.Get("project")
+		project.Id = positionRecord.(dbtype.Node).Id
+		props := positionRecord.(dbtype.Node).Props
+		name, ok := props["name"]
+		if ok {
+			project.Name = name.(string)
+		}
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(project)
 }
 
 func updateProject(w http.ResponseWriter, r *http.Request) {
