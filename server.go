@@ -14,28 +14,33 @@ import (
 )
 
 func main() {
-	dbSession, err := initializeBackend()
+	dbDriver, err := initializeBackend()
 	if err != nil {
 		log.Fatalf("Error occured during backend initializaiton %v\nExiting...", err)
 		return
 	}
-	views.DbSession = &dbSession
+	views.DbDriver = &dbDriver
 
 	handleRequests()
-	defer dbSession.Close()
+	//defer dbSession.Close()
 }
 
 func handleRequests() {
 	r := mux.NewRouter()
 	r.HandleFunc("/", views.Index)
+	r.HandleFunc("/employee/list", views.ListEmployees)
 	r.HandleFunc("/employee/{employee_id}", views.EmployeeHandler)
+
+	r.HandleFunc("/position/list", views.ListPositions)
 	r.HandleFunc("/position/{position_id}", views.PositionHandler)
+
+	r.HandleFunc("/project/list", views.ListProjects)
 	r.HandleFunc("/project/{project_id}", views.ProjectHandler)
 
 	log.Fatal(http.ListenAndServe(":8081", r))
 }
 
-func initializeBackend() (neo4j.Session, error) {
+func initializeBackend() (neo4j.Driver, error) {
 	username := "neo4j"
 	passwordSecretResourceID := "projects/golang-web-app-331620/secrets/neo4j-golang-web-project-password/versions/latest"
 	uri := "neo4j+s://a864ff6f.databases.neo4j.io"
@@ -50,16 +55,16 @@ func initializeBackend() (neo4j.Session, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer driver.Close()
 	session := driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	greeting, err := testDatabaseConnection(session)
+	defer session.Close()
 	if err != nil || len(greeting) == 0 {
 		log.Fatalf("Can't fetch greeting message or errors occurred: %v\nCheck database connection", err)
 	} else {
 		log.Print(greeting)
 	}
 
-	return session, nil
+	return driver, nil
 }
 
 func getNeo4jPassword(passwordSecretResourceID string) string {
