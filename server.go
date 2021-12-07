@@ -28,14 +28,24 @@ func main() {
 func handleRequests() {
 	r := mux.NewRouter()
 	r.HandleFunc("/", views.Index)
+
 	r.HandleFunc("/employee/list", views.ListEmployees)
-	r.HandleFunc("/employee/{employeeId}", views.EmployeeHandler)
+	r.HandleFunc("/employee/{employeeId}", views.GetEmployee).Methods("GET")
+	r.HandleFunc("/employee/{employeeId}", views.DeleteEmployee).Methods("DELETE")
+	r.HandleFunc("/employee", views.CreateEmployee).Methods("POST")
+	r.HandleFunc("/employee", views.UpdateEmployee).Methods("PUT")
 
 	r.HandleFunc("/position/list", views.ListPositions)
-	r.HandleFunc("/position/{positionId}", views.PositionHandler)
+	r.HandleFunc("/position/{positionId}", views.GetPosition).Methods("GET")
+	r.HandleFunc("/position/{positionId}", views.DeletePosition).Methods("DELETE")
+	r.HandleFunc("/position", views.CreatePosition).Methods("POST")
+	r.HandleFunc("/position", views.UpdatePosition).Methods("PUT")
 
 	r.HandleFunc("/project/list", views.ListProjects)
-	r.HandleFunc("/project/{projectId}", views.ProjectHandler)
+	r.HandleFunc("/project/{projectId}", views.GetProject).Methods("GET")
+	r.HandleFunc("/project/{projectId}", views.DeleteProject).Methods("DELETE")
+	r.HandleFunc("/project", views.CreateProject).Methods("POST")
+	r.HandleFunc("/project", views.UpdateProject).Methods("PUT")
 
 	log.Fatal(http.ListenAndServe(":8081", r))
 }

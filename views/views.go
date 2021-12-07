@@ -59,19 +59,6 @@ func ListEmployees(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func EmployeeHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "POST" {
-		createEmployee(w, r)
-	} else if r.Method == "GET" {
-		readEmployee(w, r)
-	} else if r.Method == "PUT" {
-		updateEmployee(w, r)
-	} else if r.Method == "DELETE" {
-		deleteEmployee(w, r)
-	} else {
-	}
-}
-
 func ListPositions(w http.ResponseWriter, r *http.Request) {
 	session := (*DbDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	result, _ := session.Run(`
@@ -100,19 +87,6 @@ func ListPositions(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(positions)
 
-}
-
-func PositionHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "POST" {
-		createPosition(w, r)
-	} else if r.Method == "GET" {
-		readPosition(w, r)
-	} else if r.Method == "PUT" {
-		updatePosition(w, r)
-	} else if r.Method == "DELETE" {
-		deletePosition(w, r)
-	} else {
-	}
 }
 
 func ListProjects(w http.ResponseWriter, r *http.Request) {
@@ -144,24 +118,11 @@ func ListProjects(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(projects)
 }
 
-func ProjectHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "POST" {
-		createProject(w, r)
-	} else if r.Method == "GET" {
-		readProject(w, r)
-	} else if r.Method == "PUT" {
-		updateProject(w, r)
-	} else if r.Method == "DELETE" {
-		deleteProject(w, r)
-	} else {
-	}
-}
-
-func createEmployee(w http.ResponseWriter, r *http.Request) {
+func CreateEmployee(w http.ResponseWriter, r *http.Request) {
 	//"CREATE (n:Employee {name: \"John\", surname: \"Doe\", phoneNumber: \"123123123\" })"
 }
 
-func readEmployee(w http.ResponseWriter, r *http.Request) {
+func GetEmployee(w http.ResponseWriter, r *http.Request) {
 	session := (*DbDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	params := mux.Vars(r)
 	employeeId := params["employeeId"]
@@ -195,10 +156,10 @@ func readEmployee(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(employee)
 }
 
-func updateEmployee(w http.ResponseWriter, r *http.Request) {
+func UpdateEmployee(w http.ResponseWriter, r *http.Request) {
 }
 
-func deleteEmployee(w http.ResponseWriter, r *http.Request) {
+func DeleteEmployee(w http.ResponseWriter, r *http.Request) {
 	session := (*DbDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	params := mux.Vars(r)
 	employeeId := params["employeeId"]
@@ -218,10 +179,10 @@ func deleteEmployee(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(modificationStatus)
 }
 
-func createPosition(w http.ResponseWriter, r *http.Request) {
+func CreatePosition(w http.ResponseWriter, r *http.Request) {
 }
 
-func readPosition(w http.ResponseWriter, r *http.Request) {
+func GetPosition(w http.ResponseWriter, r *http.Request) {
 	session := (*DbDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	params := mux.Vars(r)
 	positionId := params["positionId"]
@@ -247,10 +208,10 @@ func readPosition(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(position)
 }
 
-func updatePosition(w http.ResponseWriter, r *http.Request) {
+func UpdatePosition(w http.ResponseWriter, r *http.Request) {
 }
 
-func deletePosition(w http.ResponseWriter, r *http.Request) {
+func DeletePosition(w http.ResponseWriter, r *http.Request) {
 	session := (*DbDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	params := mux.Vars(r)
 	positionId := params["positionId"]
@@ -271,11 +232,11 @@ func deletePosition(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(modificationStatus)
 }
 
-func createProject(w http.ResponseWriter, r *http.Request) {
+func CreateProject(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func readProject(w http.ResponseWriter, r *http.Request) {
+func GetProject(w http.ResponseWriter, r *http.Request) {
 	session := (*DbDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	params := mux.Vars(r)
 	projectId := params["projectId"]
@@ -301,10 +262,10 @@ func readProject(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(project)
 }
 
-func updateProject(w http.ResponseWriter, r *http.Request) {
+func UpdateProject(w http.ResponseWriter, r *http.Request) {
 }
 
-func deleteProject(w http.ResponseWriter, r *http.Request) {
+func DeleteProject(w http.ResponseWriter, r *http.Request) {
 	session := (*DbDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	params := mux.Vars(r)
 	projectId := params["projectId"]
