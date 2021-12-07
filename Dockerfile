@@ -7,7 +7,10 @@ RUN go mod download
 
 COPY *.go ./
 COPY sa-private-key.json ./
+COPY models ./models
+COPY views ./views
 
+RUN go get golang-web-app
 RUN go build -o /server
 
 EXPOSE 8080
