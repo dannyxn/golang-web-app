@@ -13,6 +13,18 @@ import (
 
 var DbDriver *neo4j.Driver
 
+func respondWithError(w http.ResponseWriter, code int, message string) {
+	respondWithJSON(w, code, map[string]string{"error": message})
+}
+
+func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
+	response, _ := json.Marshal(payload)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
+	w.Write(response)
+}
+
 func Index(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Hello World!")
 }
@@ -53,8 +65,7 @@ func ListEmployees(w http.ResponseWriter, r *http.Request) {
 				employees = append(employees, newEmployee)
 			}
 		}
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(employees)
+		respondWithJSON(w, 200, employees)
 	}
 
 }
@@ -84,9 +95,7 @@ func ListPositions(w http.ResponseWriter, r *http.Request) {
 			positions = append(positions, newPosition)
 		}
 	}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(positions)
-
+	respondWithJSON(w, 200, positions)
 }
 
 func ListProjects(w http.ResponseWriter, r *http.Request) {
@@ -114,12 +123,16 @@ func ListProjects(w http.ResponseWriter, r *http.Request) {
 			projects = append(projects, newProject)
 		}
 	}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(projects)
+	respondWithJSON(w, 200, projects)
 }
 
 func CreateEmployee(w http.ResponseWriter, r *http.Request) {
-	//"CREATE (n:Employee {name: \"John\", surname: \"Doe\", phoneNumber: \"123123123\" })"
+	var employee models.Employee
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&employee); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
 }
 
 func GetEmployee(w http.ResponseWriter, r *http.Request) {
@@ -135,6 +148,7 @@ func GetEmployee(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Errorf("not found: %v", employeeId)
 		fmt.Errorf("message: %v", err)
+		respondWithError(w, 404, fmt.Sprintf("Employee with id=%v not found", employeeId))
 	} else {
 		employeeRecord, _ := record.Get("employee")
 		employee.Id = employeeRecord.(dbtype.Node).Id
@@ -152,8 +166,7 @@ func GetEmployee(w http.ResponseWriter, r *http.Request) {
 			employee.PhoneNumber = phoneNumber.(string)
 		}
 	}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(employee)
+	respondWithJSON(w, 200, employee)
 }
 
 func UpdateEmployee(w http.ResponseWriter, r *http.Request) {
@@ -164,19 +177,12 @@ func DeleteEmployee(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	employeeId := params["employeeId"]
 	query := fmt.Sprintf("MATCH (employee:Employee) WHERE ID(employee)=%v DELETE employee", employeeId)
-	modificationStatus := models.ModificationStatus{}
 	_, err := session.Run(query, nil)
 	if err != nil {
-		fmt.Errorf("not found: %v", employeeId)
-		fmt.Errorf("message: %v", err)
-		modificationStatus.Status = "not deleted"
-		modificationStatus.Error = err.Error()
+		respondWithError(w, 400, err.Error())
 	} else {
-		modificationStatus.Status = "ok"
-		modificationStatus.Error = ""
+		respondWithJSON(w, 200, models.ModificationStatus{Status: "ok", Error: ""})
 	}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(modificationStatus)
 }
 
 func CreatePosition(w http.ResponseWriter, r *http.Request) {
@@ -193,8 +199,7 @@ func GetPosition(w http.ResponseWriter, r *http.Request) {
 	result, _ := session.Run(query, nil)
 	record, err := result.Single()
 	if err != nil {
-		fmt.Errorf("not found: %v", positionId)
-		fmt.Errorf("message: %v", err)
+		respondWithError(w, 404, fmt.Sprintf("Position with id=%v not found", positionId))
 	} else {
 		positionRecord, _ := record.Get("position")
 		position.Id = positionRecord.(dbtype.Node).Id
@@ -204,8 +209,7 @@ func GetPosition(w http.ResponseWriter, r *http.Request) {
 			position.Name = name.(string)
 		}
 	}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(position)
+	respondWithJSON(w, 200, position)
 }
 
 func UpdatePosition(w http.ResponseWriter, r *http.Request) {
@@ -216,20 +220,15 @@ func DeletePosition(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	positionId := params["positionId"]
 	query := fmt.Sprintf("MATCH (position:Position) WHERE ID(position)=%v DELETE position", positionId)
-	modificationStatus := models.ModificationStatus{}
 	result, _ := session.Run(query, nil)
 	_, err := result.Single()
 	if err != nil {
 		fmt.Errorf("not found: %v", positionId)
 		fmt.Errorf("message: %v", err)
-		modificationStatus.Status = "not deleted"
-		modificationStatus.Error = err.Error()
+		respondWithError(w, 400, err.Error())
 	} else {
-		modificationStatus.Status = "ok"
-		modificationStatus.Error = ""
+		respondWithJSON(w, 200, models.ModificationStatus{Status: "ok", Error: ""})
 	}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(modificationStatus)
 }
 
 func CreateProject(w http.ResponseWriter, r *http.Request) {
@@ -247,8 +246,8 @@ func GetProject(w http.ResponseWriter, r *http.Request) {
 	result, _ := session.Run(query, nil)
 	record, err := result.Single()
 	if err != nil {
-		fmt.Errorf("not found: %v", projectId)
-		fmt.Errorf("message: %v", err)
+		respondWithError(w, 404, fmt.Sprintf("Project with id=%v not found", projectId))
+
 	} else {
 		positionRecord, _ := record.Get("project")
 		project.Id = positionRecord.(dbtype.Node).Id
@@ -258,8 +257,7 @@ func GetProject(w http.ResponseWriter, r *http.Request) {
 			project.Name = name.(string)
 		}
 	}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(project)
+	respondWithJSON(w, 200, project)
 }
 
 func UpdateProject(w http.ResponseWriter, r *http.Request) {
@@ -270,17 +268,12 @@ func DeleteProject(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	projectId := params["projectId"]
 	query := fmt.Sprintf("MATCH (project:Project) WHERE ID(project)=%v DELETE project", projectId)
-	modificationStatus := models.ModificationStatus{}
 	_, err := session.Run(query, nil)
 	if err != nil {
 		fmt.Errorf("not found: %v", projectId)
 		fmt.Errorf("message: %v", err)
-		modificationStatus.Status = "not deleted"
-		modificationStatus.Error = err.Error()
+		respondWithError(w, 400, err.Error())
 	} else {
-		modificationStatus.Status = "ok"
-		modificationStatus.Error = ""
+		respondWithJSON(w, 200, models.ModificationStatus{Status: "ok", Error: ""})
 	}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(modificationStatus)
 }
