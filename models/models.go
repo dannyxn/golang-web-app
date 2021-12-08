@@ -1,5 +1,7 @@
 package models
 
+// nodes
+
 type Employee struct {
 	Id          int64  `json:"Id"`
 	Name        string `json:"Name"`
@@ -15,6 +17,18 @@ type Position struct {
 type Project struct {
 	Id   int64  `json:"Id"`
 	Name string `json:"Name"`
+}
+
+// relationships
+
+type WorksAs struct {
+	EmployeeId int64 `json:"EmployeeId"`
+	PositionId int64 `json:"PositionId"`
+}
+
+type WorksIn struct {
+	EmployeeId int64 `json:"EmployeeId"`
+	ProjectId  int64 `json:"ProjectId"`
 }
 
 type ModificationStatus struct {

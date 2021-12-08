@@ -126,6 +126,48 @@ func ListProjects(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, 200, projects)
 }
 
+func ListWorksIn(w http.ResponseWriter, r *http.Request) {
+	session := (*DbDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	result, _ := session.Run(`
+    MATCH p=()-[r:WorksIn]->() RETURN p`, nil)
+
+	var worksInRelationships []models.WorksIn
+	for result.Next() {
+		newWorksInRelationship := models.WorksIn{}
+		record := result.Record()
+		result, ok := record.Get("p")
+		path := result.(dbtype.Path)
+		if ok {
+			newWorksInRelationship.EmployeeId = path.Relationships[0].StartId
+			newWorksInRelationship.ProjectId = path.Relationships[0].EndId
+			worksInRelationships = append(worksInRelationships, newWorksInRelationship)
+		}
+
+	}
+	respondWithJSON(w, 200, worksInRelationships)
+}
+
+func ListWorksAs(w http.ResponseWriter, r *http.Request) {
+	session := (*DbDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	result, _ := session.Run(`
+    MATCH p=()-[r:WorksAs]->() RETURN p`, nil)
+
+	var worksAsRelationships []models.WorksAs
+	for result.Next() {
+		newWorksAsRelationship := models.WorksAs{}
+		record := result.Record()
+		result, ok := record.Get("p")
+		path := result.(dbtype.Path)
+		if ok {
+			newWorksAsRelationship.EmployeeId = path.Relationships[0].StartId
+			newWorksAsRelationship.PositionId = path.Relationships[0].EndId
+			worksAsRelationships = append(worksAsRelationships, newWorksAsRelationship)
+		}
+
+	}
+	respondWithJSON(w, 200, worksAsRelationships)
+}
+
 func GetEmployee(w http.ResponseWriter, r *http.Request) {
 	session := (*DbDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	params := mux.Vars(r)
@@ -164,7 +206,7 @@ func DeleteEmployee(w http.ResponseWriter, r *http.Request) {
 	session := (*DbDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	params := mux.Vars(r)
 	employeeId := params["employeeId"]
-	query := fmt.Sprintf("MATCH (employee:Employee) WHERE ID(employee)=%v DELETE employee", employeeId)
+	query := fmt.Sprintf("MATCH (employee:Employee) WHERE ID(employee)=%v DETACH DELETE employee", employeeId)
 	_, err := session.Run(query, nil)
 	if err != nil {
 		respondWithError(w, 400, err.Error())
@@ -218,7 +260,7 @@ func CreateEmployee(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer r.Body.Close()
-	session := (*DbDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	session := (*DbDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	query := fmt.Sprintf("CREATE (employee:Employee {name: \"%v\", surname: \"%v\", phoneNumber: \"%v\"})",
 		employee.Name, employee.Surname, employee.PhoneNumber)
 
@@ -288,7 +330,7 @@ func DeletePosition(w http.ResponseWriter, r *http.Request) {
 	session := (*DbDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	params := mux.Vars(r)
 	positionId := params["positionId"]
-	query := fmt.Sprintf("MATCH (position:Position) WHERE ID(position)=%v DELETE position", positionId)
+	query := fmt.Sprintf("MATCH (position:Position) WHERE ID(position)=%v DETACH DELETE position", positionId)
 	result, _ := session.Run(query, nil)
 	_, err := result.Single()
 	if err != nil {
@@ -308,7 +350,7 @@ func CreatePosition(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer r.Body.Close()
-	session := (*DbDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	session := (*DbDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	query := fmt.Sprintf("CREATE (position:Position {name: \"%v\"})", position.Name)
 
 	_, err := session.Run(query, nil)
@@ -348,7 +390,7 @@ func DeleteProject(w http.ResponseWriter, r *http.Request) {
 	session := (*DbDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	params := mux.Vars(r)
 	projectId := params["projectId"]
-	query := fmt.Sprintf("MATCH (project:Project) WHERE ID(project)=%v DELETE project", projectId)
+	query := fmt.Sprintf("MATCH (project:Project) WHERE ID(project)=%v DETACH DELETE project", projectId)
 	_, err := session.Run(query, nil)
 	if err != nil {
 		fmt.Errorf("not found: %v", projectId)
@@ -397,7 +439,7 @@ func CreateProject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer r.Body.Close()
-	session := (*DbDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	session := (*DbDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	query := fmt.Sprintf("CREATE (project:Project {name: \"%v\"})", project.Name)
 
 	_, err := session.Run(query, nil)
@@ -406,5 +448,62 @@ func CreateProject(w http.ResponseWriter, r *http.Request) {
 	} else {
 		respondWithJSON(w, http.StatusCreated, models.ModificationStatus{Status: "ok", Error: ""})
 	}
+}
 
+func CreateWorksAs(w http.ResponseWriter, r *http.Request) {
+	var worksAs models.WorksAs
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&worksAs); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+	defer r.Body.Close()
+	session := (*DbDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	query := fmt.Sprintf("MATCH  (employee:Employee),  (position:Position) WHERE ID(employee) = %v AND ID(position) = %v AND NOT (employee)-[:WorksAs]->(position) CREATE (employee)-[r:WorksAs]->(position) RETURN type(r)", worksAs.EmployeeId, worksAs.PositionId)
+	result, err := session.Run(query, nil)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	record, err := result.Single()
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	relType, _ := record.Get("type(r)")
+	if err != nil && relType == "WorksAs" {
+		respondWithError(w, http.StatusBadRequest, err.Error())
+		return
+	} else {
+		respondWithJSON(w, http.StatusCreated, models.ModificationStatus{Status: "ok", Error: ""})
+	}
+}
+
+func CreateWorksIn(w http.ResponseWriter, r *http.Request) {
+	var worksIn models.WorksIn
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&worksIn); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+	defer r.Body.Close()
+	session := (*DbDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	query := fmt.Sprintf("MATCH  (employee:Employee),  (project:Project) WHERE ID(employee) = %v AND ID(project) = %v AND NOT (employee)-[:WorksIn]->(project) CREATE (employee)-[r:WorksIn]->(project) RETURN type(r)", worksIn.EmployeeId, worksIn.ProjectId)
+	result, err := session.Run(query, nil)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	record, err := result.Single()
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	relType, _ := record.Get("type(r)")
+	if err != nil && relType == "WorksIn" {
+		respondWithError(w, http.StatusBadRequest, err.Error())
+		return
+	} else {
+		respondWithJSON(w, http.StatusCreated, models.ModificationStatus{Status: "ok", Error: ""})
+	}
 }

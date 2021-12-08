@@ -27,7 +27,7 @@ func main() {
 
 func handleRequests() {
 	r := mux.NewRouter()
-	r.HandleFunc("/", views.Index)
+	r.HandleFunc("/", views.Index).Methods("GET")
 
 	r.HandleFunc("/employee/list", views.ListEmployees).Methods("GET")
 	r.HandleFunc("/employee/{employeeId}", views.GetEmployee).Methods("GET")
@@ -46,6 +46,11 @@ func handleRequests() {
 	r.HandleFunc("/project/{projectId}", views.DeleteProject).Methods("DELETE")
 	r.HandleFunc("/project/{projectId}", views.UpdateProject).Methods("PUT")
 	r.HandleFunc("/project", views.CreateProject).Methods("POST")
+
+	r.HandleFunc("/works_as", views.ListWorksAs).Methods("GET")
+	r.HandleFunc("/works_in", views.ListWorksIn).Methods("GET")
+	r.HandleFunc("/works_as", views.CreateWorksAs).Methods("POST")
+	r.HandleFunc("/works_in", views.CreateWorksIn).Methods("POST")
 
 	log.Fatal(http.ListenAndServe(":8081", r))
 }
