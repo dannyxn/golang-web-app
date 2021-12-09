@@ -2,27 +2,306 @@
 <html lang="en">
 
 <head>
-    <title>The bird encyclopedia</title>
+    <title>Golang & Neo4j REST API</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 </head>
-
 <body>
-<h1>The bird encyclopedia</h1>
-<table>
-    <tr>
-        <th>Species</th>
-        <th>Description</th>
-    </tr>
-    <td>Pigeon</td>
-    <td>Common in cities</td>
-    </tr>
-</table>
-<br/>
+<h1>Endpoints</h1>
+<b>REST API </b>
+<h2>List something...</h2>
 
-<form action="/bird" method="post">
-    Species:
-    <input type="text" name="species">
-    <br/> Description:
-    <input type="text" name="description">
-    <br/>
-    <input type="submit" value="Submit">
-</form>
+<button onclick="listEmployees()">List Employees</button></br></br>
+<button onclick="listProjects()">List Projects</button></br></br>
+<button onclick="listPositions()">List Positions</button></br></br>
+<button onclick="listWorksAsRelationships()">List WorksAs Relationships</button></br></br>
+<button onclick="listWorksInRelationships()">List WorksIn Relationships</button></br></br>
+<div id="listings"></div>
+
+<h2>Show Employee</h2>
+<label for="EmployeeToGetId">EmployeeId:</label><br>
+<input type="text" id="EmployeeToGetId" name="EmployeeToGetId"><br>
+<button onclick="getEmployee()">Get Employee By Id</button>
+<div id="employee"></div>
+
+<h2>Show Project</h2>
+<label for="ProjectToGetId">ProjectId:</label><br>
+<input type="text" id="ProjectToGetId" name="ProjectToGetId"><br>
+<button onclick="getProject()">Get Project By Id</button>
+<div id="project"></div>
+
+<h2>Show Position</h2>
+<label for="PositionToGetId">PositionId:</label><br>
+<input type="text" id="PositionToGetId" name="PositionToGetId"><br>
+<button onclick="getPosition()">Get Position By Id</button>
+<div id="position"></div>
+
+<h2>Create Employee</h2>
+<label for="EmployeeToCreateName">Name:</label><br>
+<input type="text" id="EmployeeToCreateName" name="EmployeeToCreateName"><br>
+<label for="EmployeeToCreateSurname">Surname:</label><br>
+<input type="text" id="EmployeeToCreateSurname" name="EmployeeToCreateSurname"><br>
+<label for="EmployeeToCreatePhoneNumber">Phone Number:</label><br>
+<input type="text" id="EmployeeToCreatePhoneNumber" name="EmployeeToCreatePhoneNumber"><br>
+<button onclick="createEmployee()">Create Employee</button>
+
+<h2>Create Project</h2>
+<label for="ProjectToCreateName">Name:</label><br>
+<input type="text" id="ProjectToCreateName" name="ProjectToCreateName"><br>
+<button onclick="createProject()">Create Project</button>
+
+
+<h2>Create Position</h2>
+<label for="PositionToCreateName">Name:</label><br>
+<input type="text" id="PositionToCreateName" name="PositionToCreateName"><br>
+<button onclick="createPosition()">Create Position</button>
+
+<h2>Create WorkAs Relationship</h2>
+<label for="EmployeeWorkAsToCreateId">EmployeeId:</label><br>
+<input type="text" id="EmployeeWorkAsToCreateId" name="EmployeeWorkAsToCreateId"><br>
+<label for="PositionWorkAsToCreateId">PositionId:</label><br>
+<input type="text" id="PositionWorkAsToCreateId" name="PositionWorkAsToCreateId"><br>
+<button onclick="createWorkAs()">Create WorkAs Relationship</button>
+
+<h2>Create WorkIn Relationship</h2>
+<label for="EmployeeWorkInToCreateId">EmployeeId:</label><br>
+<input type="text" id="EmployeeWorkInToCreateId" name="EmployeeWorkInToCreateId"><br>
+<label for="ProjectWorkInToCreateId">PositionId:</label><br>
+<input type="text" id="ProjectWorkInToCreateId" name="ProjectWorkInToCreateId"><br>
+<button onclick="createWorkIn()">Create WorkIn Relationship</button>
+
+<h2>Delete Employee</h2>
+<label for="EmployeeToDeleteId">Id:</label><br>
+<input type="text" id="EmployeeToDeleteId" name="EmployeeToDeleteId"><br>
+<button onclick="deleteEmployee()">Delete Employee</button>
+
+<h2>Delete Project</h2>
+<label for="ProjectToDeleteId">Id:</label><br>
+<input type="text" id="ProjectToDeleteId" name="ProjectToDeleteId"><br>
+<button onclick="deleteProject()">Delete Project</button>
+
+<h2>Delete Position</h2>
+<label for="PositionToDeleteId">Id:</label><br>
+<input type="text" id="PositionToDeleteId" name="PositionToDeleteId"><br>
+<button onclick="deletePosition()">Delete Position</button>
+
+<h2>Update Employee</h2>
+<label for="EmployeeToUpdateId">Id:</label><br>
+<input type="text" id="EmployeeToUpdateId" name="EmployeeToUpdateId"><br>
+<label for="EmployeeToUpdateName">Name:</label><br>
+<input type="text" id="EmployeeToUpdateName" name="EmployeeToUpdateName"><br>
+<label for="EmployeeToUpdateSurname">Surname:</label><br>
+<input type="text" id="EmployeeToUpdateSurname" name="EmployeeToUpdateSurname"><br>
+<label for="EmployeeToUpdatePhoneNumber">Phone Number:</label><br>
+<input type="text" id="EmployeeToUpdatePhoneNumber" name="EmployeeToUpdatePhoneNumber"><br>
+<button onclick="updateEmployee()">Update Employee</button>
+
+<h2>Update Project</h2>
+<label for="ProjectToUpdateName">Id:</label><br>
+<input type="text" id="ProjectToUpdateId" name="ProjectToUpdateId"><br>
+<label for="ProjectToUpdateId">Name:</label><br>
+<input type="text" id="ProjectToUpdateName" name="ProjectToUpdateName"><br>
+<button onclick="updateProject()">Update Employee</button>
+
+<h2>Update Position</h2>
+<label for="PositionToUpdateId">Id:</label><br>
+<input type="text" id="PositionToUpdateId" name="PositionToUpdateId"><br>
+<label for="ProjectToUpdateName">Name:</label><br>
+<input type="text" id="PositionToUpdateName" name="PositionToUpdateName"><br>
+<button onclick="updatePosition()">Update Employee</button>
+
+
+<script>
+    function listEmployees(){
+        let listings = document.getElementById("listings")
+        listings.innerHTML = ""
+        $.getJSON( "/employee/list", function( data ) {
+            var items = [];
+            $.each( data, function( _, item ) {
+                items.push("<li>Id: " + item.Id + "<br>Name: " + item.Name + "<br>Surname: " + item.Surname + "<br>PhoneNumber: " + item.PhoneNumber + "</li>");
+            });
+
+            $( "<ul/>", {
+                "class": "my-new-list",
+                html: items.join( "" )
+            }).appendTo( listings );
+        });
+    }
+
+    function listProjects(){
+        let listings = document.getElementById("listings")
+        listings.innerHTML = ""
+        $.getJSON( "/project/list", function( data ) {
+            var items = [];
+            $.each( data, function( _, item ) {
+                items.push("<li>Id: " + item.Id + "<br>Name: " + item.Name + "</li>");
+            });
+
+            $( "<ul/>", {
+                "class": "my-new-list",
+                html: items.join( "" )
+            }).appendTo( listings );
+        });
+    }
+
+    function listPositions() {
+        let listings = document.getElementById("listings")
+        listings.innerHTML = ""
+        $.getJSON( "/position/list", function( data ) {
+            var items = [];
+            $.each( data, function( _, item ) {
+                items.push("<li>Id: " + item.Id + "<br>Name: " + item.Name + "</li>");
+            });
+
+            $( "<ul/>", {
+                "class": "my-new-list",
+                html: items.join( "" )
+            }).appendTo( listings );
+        });
+    }
+
+    function listWorksAsRelationships() {
+        let listings = document.getElementById("listings")
+        listings.innerHTML = ""
+        $.getJSON( "/works_as", function( data ) {
+            var items = [];
+            $.each( data, function( _, item ) {
+                items.push("<li>EmployeeId: " + item.EmployeeId + "<br>PositionId: " + item.PositionId + "</li>");
+            });
+
+            $( "<ul/>", {
+                "class": "my-new-list",
+                html: items.join( "" )
+            }).appendTo( listings );
+        });
+    }
+
+    function listWorksInRelationships() {
+        let listings = document.getElementById("listings")
+        listings.innerHTML = ""
+        $.getJSON( "/works_in", function( data ) {
+            var items = [];
+            $.each( data, function( _, item ) {
+                items.push("<li>EmployeeId: " + item.EmployeeId + "<br>ProjectId: " + item.ProjectId + "</li>");
+            });
+
+            $( "<ul/>", {
+                "class": "my-new-list",
+                html: items.join( "" )
+            }).appendTo( listings );
+        });
+    }
+
+    function getEmployee() {
+        let employee = document.getElementById("employee")
+        employee.innerHTML = ""
+        let employeeId = document.getElementById("EmployeeToGetId").value
+
+        $.getJSON( "/employee/" + employeeId, function( data ) {
+            employee.innerHTML = "Id: " + data.Id + "<br>Name: " + data.Name + "<br>Surname: " + data.Surname + "<br>PhoneNumber: " + data.PhoneNumber;
+        });
+    }
+
+
+    function getProject() {
+        let project = document.getElementById("project")
+        project.innerHTML = ""
+        let projectId = document.getElementById("ProjectToGetId").value
+
+        $.getJSON( "/project/" + projectId, function( data ) {
+            project.innerHTML = "Id: " + data.Id + "<br>Name: " + data.Name;
+        });
+    }
+
+    function getPosition() {
+        let position = document.getElementById("position")
+        position.innerHTML = ""
+        let positionId = document.getElementById("PositionToGetId").value
+
+        $.getJSON( "/position/" + positionId, function( data ) {
+            position.innerHTML = "Id: " + data.Id + "<br>Name: " + data.Name;
+        });
+    }
+
+    function createEmployee() {
+        let employeeName = document.getElementById("EmployeeToCreateName").value
+        let employeeSurname = document.getElementById("EmployeeToCreateSurname").value
+        let employeePhoneNumber = document.getElementById("EmployeeToCreatePhoneNumber").value
+        $.post( "/employee", JSON.stringify({ "Id": 0, "Name": employeeName, "Surname": employeeSurname, "PhoneNumber": employeePhoneNumber }));
+    }
+
+    function createProject() {
+        let projectName = document.getElementById("ProjectToCreateName").value
+        $.post( "/project", JSON.stringify({ "Id": 0, "Name": projectName}));
+    }
+
+    function createPosition() {
+        let positionName = document.getElementById("PositionToCreateName").value
+        $.post( "/position", JSON.stringify({ "Id": 0, "Name": positionName}));
+    }
+
+    function createWorkAs() {
+        let employeeId = document.getElementById("EmployeeWorkAsToCreateId").value
+        let positionId = document.getElementById("PositionWorkAsToCreateId").value
+        $.post( "/works_as", JSON.stringify({"EmployeeId": parseInt(employeeId), "PositionId": parseInt(positionId)}));
+    }
+
+    function createWorkIn() {
+        let employeeId = document.getElementById("EmployeeWorkInToCreateId").value
+        let projectId = document.getElementById("ProjectWorkInToCreateId").value
+        $.post( "/works_in", JSON.stringify({"EmployeeId": parseInt(employeeId), "ProjectId": parseInt(projectId)}));
+    }
+
+    jQuery.each( [ "put", "delete" ], function( i, method ) {
+        jQuery[ method ] = function( url, data, callback, type ) {
+            if ( jQuery.isFunction( data ) ) {
+                type = type || callback;
+                callback = data;
+                data = undefined;
+            }
+
+            return jQuery.ajax({
+                url: url,
+                type: method,
+                dataType: type,
+                data: data,
+                success: callback
+            });
+        };
+    });
+
+    function deleteEmployee() {
+        let employeeId = document.getElementById("EmployeeToDeleteId").value
+        $.delete( "/employee/" + employeeId );
+    }
+
+    function deleteProject() {
+        let projectId = document.getElementById("ProjectToDeleteId").value
+        $.delete( "/project/" + projectId );
+    }
+
+    function deletePosition() {
+        let positionId = document.getElementById("PositionToDeleteId").value
+        $.delete( "/position/" + positionId );
+    }
+
+    function updateEmployee() {
+        let employeeId = document.getElementById("EmployeeToUpdateId").value
+        let employeeName = document.getElementById("EmployeeToUpdateName").value
+        let employeeSurname = document.getElementById("EmployeeToUpdateSurname").value
+        let employeePhoneNumber = document.getElementById("EmployeeToUpdatePhoneNumber").value
+        $.put( "/employee/" + employeeId, JSON.stringify({ "Id": 0, "Name": employeeName, "Surname": employeeSurname, "PhoneNumber": employeePhoneNumber }));
+    }
+
+    function updateProject() {
+        let projectId = document.getElementById("ProjectToUpdateId").value
+        let projectName = document.getElementById("ProjectToUpdateName").value
+        $.put( "/project/" + + projectId, JSON.stringify({ "Id": 0, "Name": projectName}));
+    }
+
+    function updatePosition() {
+        let positionId = document.getElementById("PositionToUpdateId").value
+        let positionName = document.getElementById("PositionToUpdateName").value
+        $.put( "/position/" + positionId, JSON.stringify({ "Id": 0, "Name": positionName}));
+    }
+</script>
+</body>

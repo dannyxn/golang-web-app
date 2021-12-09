@@ -27,8 +27,8 @@ func main() {
 
 func handleRequests() {
 	r := mux.NewRouter()
-	r.HandleFunc("/", views.Index).Methods("GET")
 
+	r.Handle("/", http.FileServer(http.Dir("./views/templates")))
 	r.HandleFunc("/employee/list", views.ListEmployees).Methods("GET")
 	r.HandleFunc("/employee/{employeeId}", views.GetEmployee).Methods("GET")
 	r.HandleFunc("/employee/{employeeId}", views.DeleteEmployee).Methods("DELETE")

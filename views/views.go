@@ -25,10 +25,6 @@ func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
 	w.Write(response)
 }
 
-func Index(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hello World!")
-}
-
 func ListEmployees(w http.ResponseWriter, r *http.Request) {
 	session := (*DbDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	result, err := session.Run(`
@@ -178,7 +174,7 @@ func GetEmployee(w http.ResponseWriter, r *http.Request) {
 
 	result, _ := session.Run(query, nil)
 	record, err := result.Single()
-	if err != nil {
+	if err != nil || record == nil {
 		fmt.Errorf("not found: %v", employeeId)
 		fmt.Errorf("message: %v", err)
 		respondWithError(w, 404, fmt.Sprintf("Employee with id=%v not found", employeeId))
@@ -230,11 +226,11 @@ func UpdateEmployee(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	if employee.Name != "" {
-		querySet += fmt.Sprintf(" employee.name = \"%v\"", employee.Name)
+		querySet += fmt.Sprintf(" employee.name = \"%v\",", employee.Name)
 	}
 
 	if employee.Surname != "" {
-		querySet += fmt.Sprintf(" employee.surname = \"%v\"", employee.Surname)
+		querySet += fmt.Sprintf(" employee.surname = \"%v\",", employee.Surname)
 	}
 
 	if employee.PhoneNumber != "" {
