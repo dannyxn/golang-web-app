@@ -52,7 +52,7 @@ func handleRequests() {
 	r.HandleFunc("/works_as", views.CreateWorksAs).Methods("POST")
 	r.HandleFunc("/works_in", views.CreateWorksIn).Methods("POST")
 
-	log.Fatal(http.ListenAndServe(":8081", r))
+	log.Fatal(http.ListenAndServe(":8080", r))
 }
 
 func initializeBackend() (neo4j.Driver, error) {
